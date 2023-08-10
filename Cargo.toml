@@ -33,4 +33,5 @@ num_enum = "0.5.10"
 
 [lib]
 name = "rustls_ffi"
-crate-type = ["lib", "staticlib"]
+crate-type = ["cdylib", "rlib"] 
+# crate-type = ["lib", "staticlib"]
