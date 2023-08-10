@@ -37,6 +37,15 @@ pub use error::*;
 use crate::log::rustls_log_callback;
 use crate::panic::PanicOrDefault;
 
+extern crate liquid_ffi;
+
+use liquid_ffi::lffi_tracing_allocator::LffiAllocator;
+use std::alloc::System;
+
+// use our instrumented allocator
+#[global_allocator]
+static ALLOCATOR: LffiAllocator<System> = LffiAllocator::system();
+
 // version.rs gets written at compile time by build.rs
 include!(concat!(env!("OUT_DIR"), "/version.rs"));
 
