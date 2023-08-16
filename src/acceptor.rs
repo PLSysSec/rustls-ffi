@@ -134,9 +134,8 @@ impl rustls_acceptor {
                 Ok(n) => n,
                 Err(e) => return rustls_io_result(e.raw_os_error().unwrap_or(EIO)),
             };
-            unsafe {
-                *out_n = n_read;
-            }
+
+            *safe_as_ref_mut(out_n) = n_read;
 
             rustls_io_result(0)
         }
@@ -458,33 +457,33 @@ mod tests {
         rustls_acceptor::rustls_acceptor_new()
     }
 
-    unsafe extern "C" fn vecdeque_read(
+    extern "C" fn vecdeque_read(
         userdata: *mut c_void,
         buf: *mut u8,
         n: usize,
         out_n: *mut usize,
     ) -> rustls_io_result {
-        let vecdeq: *mut VecDeque<u8> = userdata as *mut _;
-        (*vecdeq).make_contiguous();
-        let first: &[u8] = (*vecdeq).as_slices().0;
+        let vecdeq: &mut VecDeque<u8> = safe_as_ref_mut(userdata as *mut _);
+        vecdeq.make_contiguous();
+        let first: &[u8] = vecdeq.as_slices().0;
         let n = min(n, first.len());
-        std::ptr::copy_nonoverlapping(first.as_ptr(), buf, n);
-        (*vecdeq).drain(0..n).count();
-        *out_n = n;
+        safe_copy_nonoverlapping(first.as_ptr(), buf, n);
+        vecdeq.drain(0..n).count();
+        *safe_as_ref_mut(out_n) = n;
         rustls_io_result(0)
     }
 
     // Write bytes from the provided buffer into userdata (a `*mut VecDeque<u8>`).
-    unsafe extern "C" fn vecdeque_write(
+    extern "C" fn vecdeque_write(
         userdata: *mut c_void,
         buf: *const u8,
         n: size_t,
         out_n: *mut size_t,
     ) -> rustls_io_result {
-        let vecdeq: *mut VecDeque<u8> = userdata as *mut _;
-        let buf = slice::from_raw_parts(buf, n);
-        (*vecdeq).extend(buf);
-        *out_n = n;
+        let vecdeq: &mut VecDeque<u8> = safe_as_ref_mut(userdata as *mut _);
+        let buf = safe_slice_from_raw_parts(buf, n);
+        vecdeq.extend(buf);
+        *safe_as_ref_mut(out_n) = n;
         rustls_io_result(0)
     }
 
@@ -608,7 +607,7 @@ mod tests {
         assert_ne!(accepted, null_mut());
 
         let sni = rustls_accepted::rustls_accepted_server_name(accepted);
-        let sni_as_slice = unsafe { std::slice::from_raw_parts(sni.data as *const u8, sni.len) };
+        let sni_as_slice = safe_slice_from_raw_parts(sni.data as *const u8, sni.len);
         let sni_as_str = std::str::from_utf8(sni_as_slice).unwrap_or("%!(ERROR)");
         assert_eq!(sni_as_str, "example.com");
 
@@ -638,8 +637,8 @@ mod tests {
 
         assert_eq!(alpn.len(), 2);
         // No need to sort ALPN because order is determine by what the client sent.
-        let alpn0 = unsafe { std::slice::from_raw_parts(alpn[0].data, alpn[0].len) };
-        let alpn1 = unsafe { std::slice::from_raw_parts(alpn[1].data, alpn[1].len) };
+        let alpn0 = safe_slice_from_raw_parts(alpn[0].data, alpn[0].len);
+        let alpn1 =  safe_slice_from_raw_parts(alpn[1].data, alpn[1].len);
         assert_eq!(alpn0, "zarp".as_bytes());
         assert_eq!(alpn1, "yuun".as_bytes());
 
