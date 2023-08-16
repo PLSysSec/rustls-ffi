@@ -160,9 +160,9 @@ impl rustls_connection {
                 Ok(n) => n,
                 Err(e) => return rustls_io_result(e.raw_os_error().unwrap_or(EIO)),
             };
-            unsafe {
-                *out_n = n_read;
-            }
+            
+            *safe_as_ref_mut(out_n) = n_read;
+            
 
             rustls_io_result(0)
         }
@@ -197,9 +197,9 @@ impl rustls_connection {
                 Ok(n) => n,
                 Err(e) => return rustls_io_result(e.raw_os_error().unwrap_or(EIO)),
             };
-            unsafe {
-                *out_n = n_written;
-            }
+            
+            *safe_as_ref_mut(out_n) = n_written;
+            
 
             rustls_io_result(0)
         }
@@ -234,9 +234,9 @@ impl rustls_connection {
                 Ok(n) => n,
                 Err(e) => return rustls_io_result(e.raw_os_error().unwrap_or(EIO)),
             };
-            unsafe {
-                *out_n = n_written;
-            }
+            
+            *safe_as_ref_mut(out_n) = n_written;
+            
 
             rustls_io_result(0)
         }
@@ -363,13 +363,13 @@ impl rustls_connection {
                 return
             }
             match conn.alpn_protocol() {
-                Some(p) => unsafe {
-                    *protocol_out = p.as_ptr();
-                    *protocol_out_len = p.len();
+                Some(p) => {
+                    *safe_as_ref_mut(protocol_out) = p.as_ptr();
+                    *safe_as_ref_mut(protocol_out_len) = p.len();
                 },
-                None => unsafe {
-                    *protocol_out = null();
-                    *protocol_out_len = 0;
+                None => {
+                    *safe_as_ref_mut(protocol_out) = null();
+                    *safe_as_ref_mut(protocol_out_len) = 0;
                 }
             }
         }
@@ -443,9 +443,9 @@ impl rustls_connection {
                 Ok(n) => n,
                 Err(_) => return rustls_result::Io,
             };
-            unsafe {
-                *out_n = n_written;
-            }
+            
+            *safe_as_ref_mut(out_n) = n_written;
+            
             rustls_result::Ok
         }
     }
@@ -480,9 +480,7 @@ impl rustls_connection {
 
             // Safety: the memory pointed at by buf must be initialized
             // (required by documentation of this function).
-            let read_buf: &mut [u8] = unsafe {
-                slice::from_raw_parts_mut(buf, count)
-            };
+            let read_buf: &mut [u8] = safe_slice_from_raw_parts_mut(buf, count);
 
             let n_read: usize = match conn.reader().read(read_buf) {
                 Ok(n) => n,
@@ -490,9 +488,9 @@ impl rustls_connection {
                 Err(e) if e.kind() == ErrorKind::WouldBlock => return rustls_result::PlaintextEmpty,
                 Err(_) => return rustls_result::Io,
             };
-            unsafe {
-                *out_n = n_read;
-            }
+            
+            *safe_as_ref_mut(out_n) = n_read;
+            
             rustls_result::Ok
         }
     }
@@ -523,9 +521,7 @@ impl rustls_connection {
             if buf.is_null() || out_n.is_null() {
                 return NullParameter
             }
-            let read_buf: &mut [std::mem::MaybeUninit<u8>] = unsafe {
-                slice::from_raw_parts_mut(buf, count)
-            };
+            let read_buf: &mut [std::mem::MaybeUninit<u8>] = safe_slice_from_raw_parts_mut(buf, count);
 
             let mut read_buf: std::io::BorrowedBuf<'_> = read_buf.into();
 
@@ -535,9 +531,9 @@ impl rustls_connection {
                 Err(e) if e.kind() == ErrorKind::WouldBlock => return rustls_result::PlaintextEmpty,
                 Err(_) => return rustls_result::Io,
             };
-            unsafe {
-                *out_n = n_read;
-            }
+            
+            *safe_as_ref_mut(out_n) = n_read;
+            
             rustls_result::Ok
         }
     }
@@ -549,7 +545,7 @@ impl rustls_connection {
         ffi_panic_boundary! {
             let conn: &mut Connection = try_mut_from_ptr!(conn);
             // Convert the pointer to a Box and drop it.
-            drop(unsafe { Box::from_raw(conn) });
+            drop(safe_box_from_raw(conn));
         }
     }
 }
