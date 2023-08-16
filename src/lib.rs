@@ -37,6 +37,7 @@ pub use error::*;
 
 use crate::log::rustls_log_callback;
 use crate::panic::PanicOrDefault;
+use crate::safe_ffi::*;
 
 // version.rs gets written at compile time by build.rs
 include!(concat!(env!("OUT_DIR"), "/version.rs"));

@@ -4,6 +4,8 @@ use libc::c_void;
 use log::Level;
 
 use crate::{log_callback_get, rslice::rustls_str};
+use crate::safe_ffi::*;
+
 
 struct Logger {}
 

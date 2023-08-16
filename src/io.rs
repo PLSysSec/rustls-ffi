@@ -3,6 +3,8 @@ use std::io::{Error, IoSlice, Read, Result, Write};
 use libc::{c_void, size_t};
 
 use crate::error::rustls_io_result;
+use crate::safe_ffi::*;
+
 
 /// A callback for rustls_connection_read_tls.
 /// An implementation of this callback should attempt to read up to n bytes from the

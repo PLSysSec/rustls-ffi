@@ -7,6 +7,7 @@ use crate::ffi_panic_boundary;
 use libc::{c_char, c_uint, size_t};
 use num_enum::TryFromPrimitive;
 use rustls::{CertificateError, Error, InvalidMessage};
+use crate::safe_ffi::*;
 
 /// A return value for a function that may return either success (0) or a
 /// non-zero value representing an error. The values should match socket

@@ -21,6 +21,7 @@ use crate::{
 };
 use rustls_result::NullParameter;
 use std::ops::Deref;
+use crate::safe_ffi::*;
 
 /// An X.509 certificate, as used in rustls.
 /// Corresponds to `Certificate` in the Rust API.

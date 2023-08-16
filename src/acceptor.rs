@@ -15,6 +15,7 @@ use crate::{
     try_ref_from_ptr, BoxCastPtr, CastPtr,
 };
 use rustls_result::NullParameter;
+use crate::safe_ffi::*;
 
 /// A buffer and parser for ClientHello bytes. This allows reading ClientHello
 /// before choosing a rustls_server_config. It's useful when the server

@@ -24,6 +24,7 @@ use crate::{
     ffi_panic_boundary, try_arc_from_ptr, try_box_from_ptr, try_mut_from_ptr, try_ref_from_ptr,
     try_slice, userdata_get, ArcCastPtr, BoxCastPtr, CastConstPtr, CastPtr,
 };
+use crate::safe_ffi::*;
 
 /// A client config being constructed. A builder can be modified by,
 /// e.g. rustls_client_config_builder_load_roots_from_file. Once you're

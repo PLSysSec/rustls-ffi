@@ -7,6 +7,8 @@ use std::{
     convert::{TryFrom, TryInto},
     ptr::null,
 };
+use crate::safe_ffi::*;
+
 
 /// A read-only view on a Rust byte slice.
 ///

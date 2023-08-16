@@ -4,6 +4,8 @@ use crate::error::rustls_result;
 use crate::rslice::rustls_slice_bytes;
 use crate::userdata_get;
 use libc::{c_int, c_void, size_t};
+use crate::safe_ffi::*;
+
 
 /// Any context information the callback will receive when invoked.
 pub type rustls_session_store_userdata = *mut c_void;

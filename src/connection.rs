@@ -23,6 +23,8 @@ use crate::{
 use crate::{ffi_panic_boundary, try_ref_from_ptr};
 use crate::{try_mut_from_ptr, try_slice, userdata_push, CastPtr};
 use rustls_result::NullParameter;
+use crate::safe_ffi::*;
+
 
 pub(crate) struct Connection {
     conn: rustls::Connection,
