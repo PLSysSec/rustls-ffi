@@ -30,6 +30,7 @@ mod panic;
 pub mod rslice;
 pub mod server;
 pub mod session;
+mod safe_ffi;
 
 pub use error::rustls_result;
 pub use error::*;
