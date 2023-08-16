@@ -406,7 +406,7 @@ macro_rules! try_slice {
         if $ptr.is_null() {
             return $crate::panic::NullParameterOrDefault::value();
         } else {
-            unsafe { slice::from_raw_parts($ptr, $count as usize) }
+            safe_slice_from_raw_parts($ptr, $count as usize)
         }
     };
 }
@@ -418,7 +418,7 @@ macro_rules! try_mut_slice {
         if $ptr.is_null() {
             return $crate::panic::NullParameterOrDefault::value();
         } else {
-            unsafe { slice::from_raw_parts_mut($ptr, $count as usize) }
+            safe_slice_from_raw_parts_mut($ptr, $count as usize)
         }
     };
 }

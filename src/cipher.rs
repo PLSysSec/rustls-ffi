@@ -238,10 +238,10 @@ mod tests {
         let suite = rustls_all_ciphersuites_get_entry(0);
         let s = rustls_supported_ciphersuite_get_name(suite);
         let want = "TLS13_AES_256_GCM_SHA384";
-        unsafe {
-            let got = str::from_utf8(slice::from_raw_parts(s.data as *const u8, s.len)).unwrap();
-            assert_eq!(want, got)
-        }
+        
+        let got = str::from_utf8(safe_slice_from_raw_parts(s.data as *const u8, s.len)).unwrap();
+        assert_eq!(want, got)
+        
     }
 
     #[test]
@@ -390,17 +390,17 @@ impl rustls_certified_key {
         private_key: *const u8,
         private_key_len: size_t,
     ) -> Result<CertifiedKey, rustls_result> {
-        let mut cert_chain: &[u8] = unsafe {
+        let mut cert_chain: &[u8] = {
             if cert_chain.is_null() {
                 return Err(NullParameter);
             }
-            slice::from_raw_parts(cert_chain, cert_chain_len)
+            safe_slice_from_raw_parts(cert_chain, cert_chain_len)
         };
-        let private_key: &[u8] = unsafe {
+        let private_key: &[u8] = {
             if private_key.is_null() {
                 return Err(NullParameter);
             }
-            slice::from_raw_parts(private_key, private_key_len)
+            safe_slice_from_raw_parts(private_key, private_key_len)
         };
         let mut private_keys: Vec<Vec<u8>> = match pkcs8_private_keys(&mut Cursor::new(private_key))
         {
