@@ -336,7 +336,7 @@ pub(crate) trait BoxCastPtr: CastPtr + Sized {
             return None;
         }
         let rs_typed = Self::cast_mut_ptr(ptr);
-        unsafe { Some(Box::from_raw(rs_typed)) }
+        Some(safe_box_from_raw(rs_typed))
     }
 
     fn to_mut_ptr(src: Self::RustType) -> *mut Self {
@@ -344,9 +344,7 @@ pub(crate) trait BoxCastPtr: CastPtr + Sized {
     }
 
     fn set_mut_ptr(dst: *mut *mut Self, src: Self::RustType) {
-        unsafe {
-            *dst = Self::to_mut_ptr(src);
-        }
+        *safe_as_ref_mut(dst) = Self::to_mut_ptr(src);
     }
 }
 
@@ -373,7 +371,7 @@ pub(crate) trait ArcCastPtr: CastConstPtr + Sized {
             return None;
         }
         let rs_typed = Self::cast_const_ptr(ptr);
-        let r = unsafe { Arc::from_raw(rs_typed) };
+        let r = { safe_arc_from_raw(rs_typed) };
         let val = Arc::clone(&r);
         mem::forget(r);
         Some(val)
@@ -382,7 +380,7 @@ pub(crate) trait ArcCastPtr: CastConstPtr + Sized {
     /// For types represented with an Arc on the Rust side, we offer a _free()
     /// method to the C side that decrements the refcount and ultimately drops
     /// the Arc if the refcount reaches 0. By contrast with to_arc, we call
-    /// Arc::from_raw on the input pointer, but we _don't_ clone it, because we
+    /// safe_arc_from_raw on the input pointer, but we _don't_ clone it, because we
     /// want the refcount to be lower by one when we reach the end of the function.
     ///
     /// Does nothing when passed null.
@@ -391,7 +389,7 @@ pub(crate) trait ArcCastPtr: CastConstPtr + Sized {
             return;
         }
         let rs_typed = Self::cast_const_ptr(ptr);
-        drop(unsafe { Arc::from_raw(rs_typed) });
+        drop( safe_arc_from_raw(rs_typed) );
     }
 
     fn to_const_ptr(src: Self::RustType) -> *const Self {
@@ -431,7 +429,7 @@ pub(crate) fn try_from<'a, F, T>(from: *const F) -> Option<&'a T>
 where
     F: CastConstPtr<RustType = T>,
 {
-    unsafe { F::cast_const_ptr(from).as_ref() }
+    safe_try_as_ref(F::cast_const_ptr(from))
 }
 
 /// Turn a raw mut pointer into a mutable reference.
@@ -439,7 +437,7 @@ pub(crate) fn try_from_mut<'a, F, T>(from: *mut F) -> Option<&'a mut T>
 where
     F: CastPtr<RustType = T>,
 {
-    unsafe { F::cast_mut_ptr(from).as_mut() }
+    safe_try_as_ref_mut(F::cast_mut_ptr(from))
 }
 
 pub(crate) fn try_box_from<F, T>(from: *mut F) -> Option<Box<T>>

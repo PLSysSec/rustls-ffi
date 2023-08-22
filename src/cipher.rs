@@ -52,9 +52,9 @@ impl rustls_certificate {
                 return NullParameter
             }
             let der = cert.as_ref();
-            unsafe {
-                *out_der_data = der.as_ptr();
-                *out_der_len = der.len();
+            {
+                *safe_as_ref_mut(out_der_data) = der.as_ptr();
+                *safe_as_ref_mut(out_der_len) = der.len();
             }
             rustls_result::Ok
         }
@@ -304,8 +304,8 @@ impl rustls_certified_key {
         certified_key_out: *mut *const rustls_certified_key,
     ) -> rustls_result {
         ffi_panic_boundary! {
-            let certified_key_out: &mut *const rustls_certified_key = unsafe {
-                match certified_key_out.as_mut() {
+            let certified_key_out: &mut *const rustls_certified_key = {
+                match safe_try_as_ref_mut(certified_key_out) {
                     Some(c) => c,
                     None => return NullParameter,
                 }
@@ -352,8 +352,8 @@ impl rustls_certified_key {
         cloned_key_out: *mut *const rustls_certified_key,
     ) -> rustls_result {
         ffi_panic_boundary! {
-            let cloned_key_out: &mut *const rustls_certified_key = unsafe {
-                match cloned_key_out.as_mut() {
+            let cloned_key_out: &mut *const rustls_certified_key = {
+                match safe_try_as_ref_mut(cloned_key_out) {
                     Some(c) => c,
                     None => return NullParameter,
                 }
@@ -361,7 +361,7 @@ impl rustls_certified_key {
             let certified_key: &CertifiedKey = try_ref_from_ptr!(certified_key);
             let mut new_key = certified_key.deref().clone();
             if !ocsp_response.is_null() {
-                let ocsp_slice = unsafe{ &*ocsp_response };
+                let ocsp_slice = safe_as_ref(ocsp_response);
                 new_key.ocsp = Some(Vec::from(try_slice!(ocsp_slice.data, ocsp_slice.len)));
             } else {
                 new_key.ocsp = None;

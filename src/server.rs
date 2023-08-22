@@ -380,23 +380,18 @@ pub extern "C" fn rustls_server_connection_get_server_name(
         let sni_hostname = match server_connection.server_name() {
             Some(sni_hostname) => sni_hostname,
             None => {
-                unsafe {
-                    *out_n = 0;
-                }
+                *safe_as_ref_mut(out_n) = 0;
                 return rustls_result::Ok
             },
         };
         let len: usize = sni_hostname.len();
         if len > count {
-            unsafe {
-                *out_n = 0
-            }
+            *safe_as_ref_mut(out_n) = 0;
             return rustls_result::InsufficientSize;
         }
-        unsafe {
-            std::ptr::copy_nonoverlapping(sni_hostname.as_ptr(), buf, len);
-            *out_n = len;
-        }
+        safe_copy_nonoverlapping(sni_hostname.as_ptr(), buf, len);
+        *safe_as_ref_mut(out_n) = len;
+        
         rustls_result::Ok
     }
 }
@@ -641,9 +636,7 @@ pub extern "C" fn rustls_client_hello_select_certified_key(
         for &key_ptr in keys_ptrs {
             let key_ref: &CertifiedKey = try_ref_from_ptr!(key_ptr);
             if key_ref.key.choose_scheme(&schemes).is_some() {
-                unsafe {
-                    *out_key = key_ptr;
-                }
+                *safe_as_ref_mut(out_key) = key_ptr;
                 return rustls_result::Ok;
             }
         }

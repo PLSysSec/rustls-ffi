@@ -79,12 +79,10 @@ pub struct rustls_slice_slice_bytes<'a> {
 /// Return the length of the outer slice. If the input pointer is NULL,
 /// returns 0.
 #[no_mangle]
-pub extern "C" fn rustls_slice_slice_bytes_len(input: *const rustls_slice_slice_bytes) -> size_t {
-    unsafe {
-        match input.as_ref() {
-            Some(c) => c.inner.len(),
-            None => 0,
-        }
+pub extern "C" fn rustls_slice_slice_bytes_len(input: *const rustls_slice_slice_bytes) -> size_t {     
+    match safe_try_as_ref(input) {
+        Some(c) => c.inner.len(),
+        None => 0,
     }
 }
 
@@ -96,8 +94,8 @@ pub extern "C" fn rustls_slice_slice_bytes_get(
     input: *const rustls_slice_slice_bytes,
     n: size_t,
 ) -> rustls_slice_bytes {
-    let input: &rustls_slice_slice_bytes = unsafe {
-        match input.as_ref() {
+    let input: &rustls_slice_slice_bytes = {
+        match safe_try_as_ref(input) {
             Some(c) => c,
             None => {
                 return rustls_slice_bytes {
@@ -220,7 +218,7 @@ impl<'a> rustls_str<'a> {
 // holds.
 impl<'a> fmt::Debug for rustls_str<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let raw = unsafe {
+        let raw = {
             // Despite the use of "unsafe", we know that this is safe because:
             // - self.data is a u8, and single bytes are aligned
             // - the entire memory range is a single allocated object, because
@@ -229,7 +227,7 @@ impl<'a> fmt::Debug for rustls_str<'a> {
             // - all values are properly initialized because we only init
             // rustls_str objects inside of Rust code
             // - not larger than isize::MAX because, again, it's coming from Rust
-            slice::from_raw_parts(self.data as *const u8, self.len)
+            safe_slice_from_raw_parts(self.data as *const u8, self.len)
         };
         let s = str::from_utf8(raw).unwrap_or("%!(ERROR)");
         f.debug_struct("rustls_str")
@@ -296,8 +294,8 @@ pub struct rustls_slice_str<'a> {
 /// returns 0.
 #[no_mangle]
 pub extern "C" fn rustls_slice_str_len(input: *const rustls_slice_str) -> size_t {
-    unsafe {
-        match input.as_ref() {
+    {
+        match safe_try_as_ref(input) {
             Some(c) => c.inner.len(),
             None => 0,
         }
@@ -309,8 +307,8 @@ pub extern "C" fn rustls_slice_str_len(input: *const rustls_slice_str) -> size_t
 /// rustls_slice_str, returns rustls_str{NULL, 0}.
 #[no_mangle]
 pub extern "C" fn rustls_slice_str_get(input: *const rustls_slice_str, n: size_t) -> rustls_str {
-    let input: &rustls_slice_str = unsafe {
-        match input.as_ref() {
+    let input: &rustls_slice_str = {
+        match safe_try_as_ref(input) {
             Some(c) => c,
             None => {
                 return rustls_str {

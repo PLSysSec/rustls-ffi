@@ -344,11 +344,11 @@ impl rustls_client_config_builder {
     ) -> rustls_result {
         ffi_panic_boundary! {
             let config_builder = try_mut_from_ptr!(config_builder);
-            let filename: &CStr = unsafe {
+            let filename: &CStr = {
                 if filename.is_null() {
                     return rustls_result::NullParameter;
                 }
-                CStr::from_ptr(filename)
+                safe_cstr_from_ptr(filename)
             };
 
             let filename: &[u8] = filename.to_bytes();
@@ -543,11 +543,11 @@ impl rustls_client_config {
         conn_out: *mut *mut rustls_connection,
     ) -> rustls_result {
         ffi_panic_boundary! {
-        let server_name: &CStr = unsafe {
+        let server_name: &CStr = {
             if server_name.is_null() {
                 return NullParameter;
             }
-            CStr::from_ptr(server_name)
+            safe_cstr_from_ptr(server_name)
         };
         let config: Arc<ClientConfig> = try_arc_from_ptr!(config);
         let server_name: &str = match server_name.to_str() {

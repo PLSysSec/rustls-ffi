@@ -39,10 +39,10 @@ impl rustls_result {
             let result: rustls_result = rustls_result::try_from(result).unwrap_or(rustls_result::InvalidParameter);
             let error_str = result.to_string();
             let out_len: usize = min(len - 1, error_str.len());
-            unsafe {
-                std::ptr::copy_nonoverlapping(error_str.as_ptr() as *mut c_char, buf, out_len);
-                *out_n = out_len;
-            }
+            
+            safe_copy_nonoverlapping(error_str.as_ptr() as *mut c_char, buf, out_len);
+            *safe_as_ref_mut(out_n) = out_len;
+            
         }
     }
 
